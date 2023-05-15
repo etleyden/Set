@@ -25,17 +25,17 @@ public class Board {
     }
     /**
      * Takes a list of cards, and a proposed card to add to the list, and ensures it
-     * has not already been added.
+     * has not already been added. Public for testing purposes
      * @param cards: a List of cards
      * @param card: the proposed card
      */
-    private Card fixDuplicates(List<Card> cards, Card card) {
+    public static Card fixDuplicates(List<Card> cards, Card card) {
     	boolean hasDuplicates;
     	do {
     		hasDuplicates = false;
     		for(int i = 0; i < cards.size(); i++) {
     			if(Objects.isNull(cards.get(i))) continue;
-    			if(card.equals(cards.get(i))) {
+    			if(card.matchStatus(cards.get(i)) == 15) {
     				card = Card.getRandomCard();
     				hasDuplicates = true;
     			}
@@ -65,10 +65,15 @@ public class Board {
     	return true;
     }
 
+    public Card getCard(int i) {
+    	return cards.get(i);
+    }
     public List<Card> getCards() {
         return cards;
     }
-
+    public int getBoardSize() {
+    	return cards.size();
+    }
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

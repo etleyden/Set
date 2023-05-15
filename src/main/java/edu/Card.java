@@ -6,24 +6,28 @@ public class Card {
 	//All possible attributes of a card result in 3^4 different cards
 	//Enums are implemented to make it easier to VALIDATE cards
 	public enum SHAPE {
-		DIAMOND("Diamond"), SQUIGGLE("Squiggle"), OVAL("Oval");
+		DIAMOND("Diamond", 0), SQUIGGLE("Squiggle", 1), OVAL("Oval", 2);
 		public final String label;
-		SHAPE(String label) {this.label = label;}
+		public final int value;
+		SHAPE(String label, int value) {this.label = label; this.value = value;}
 	}
 	public enum SHADING {
-		SOLID("Solid"), STRIPED("Striped"), OPEN("Open");
+		SOLID("Solid", 0), STRIPED("Striped", 1), OPEN("Open", 2);
 		public final String label;
-		SHADING(String label) {this.label = label;}
+		public final int value;
+		SHADING(String label, int value) {this.label = label; this.value = value;}
 	}
 	public enum COLOR{
-		RED("Red"), GREEN("Green"), PURPLE("Purple");
+		RED("Red", 0), GREEN("Green", 1), PURPLE("Purple", 2);
 		public final String label;
-		COLOR(String label) {this.label = label;}
+		public final int value;
+		COLOR(String label, int value) {this.label = label; this.value = value;}
 	}
 	public enum QUANTITY {
-		ONE(1), TWO(2), THREE(3);
+		ONE(1, 0), TWO(2, 1), THREE(3, 2);
 		public final int label;
-		QUANTITY(int label) {this.label = label;}
+		public final int value;
+		QUANTITY(int label, int value) {this.label = label; this.value = value;}
 	}
 	
     private final SHAPE shape;
@@ -45,6 +49,8 @@ public class Card {
         this.color = color;
         this.qty = qty;
     }
+    //TODO: Build a constructur that allows a user to create a Card from numerical
+    //representations of each enum attribute
 
     public SHAPE getShape() {
         return shape;

@@ -4,76 +4,65 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Board {
+	//A list of the cards *dealt*.
     private List<Card> cards;
-    String[] shapes = {"oval", "squiggle", "diamond"};
-    String[] colors = {"red", "purple", "green"};
-    int[] numbers = {1, 2, 3};
-    String[] shadings = {"solid", "striped", "outlined"};
+    public static final int NUM_CARDS = 12;
+    public static final int SET_SIZE = 3;
     
+    /**
+     * Creates a board with cards *already dealt*
+     */
     public Board() {
         cards = new ArrayList<>();
-        for (String shape : shapes)
-        	for (String color : colors)
-        		for (int number : numbers)
-        			for (String shading : shadings)
-        				cards.add(new Card(shape, color, number, shading));
-        Collections.shuffle(cards);
-        cards = cards.subList(0, 12);
+        for(int i = 0; i < NUM_CARDS; i++) {
+        	//generates a random card, and ensures it is not a duplicate of dealt cards.
+        	Card nextCard = fixDuplicates(cards, Card.getRandomCard());
+        	cards.add(nextCard);
+        }
     }
-
-    public boolean isSet(int[] cardIndices) {
-        if (cardIndices.length != 3) {
-            return false;
-        }
-        Card[] selectedCards = new Card[3];
-        for (int i = 0; i < 3; i++) {
-            if (cardIndices[i] < 0 || cardIndices[i] >= cards.size()) {
-                return false;
-            }
-            selectedCards[i] = cards.get(cardIndices[i]);
-        }
-        return isValidSet(selectedCards);
+    /**
+     * Takes a list of cards, and a proposed card to add to the list, and ensures it
+     * has not already been added.
+     * @param cards: a List of cards
+     * @param card: the proposed card
+     */
+    private Card fixDuplicates(List<Card> cards, Card card) {
+    	boolean hasDuplicates;
+    	do {
+    		hasDuplicates = false;
+    		for(int i = 0; i < cards.size(); i++) {
+    			if(Objects.isNull(cards.get(i))) continue;
+    			if(card.equals(cards.get(i))) {
+    				card = Card.getRandomCard();
+    				hasDuplicates = true;
+    			}
+    		}
+    	} while(hasDuplicates);
+    	return card;
     }
-
-    private boolean isValidSet(Card[] cards) {
-        boolean isValueSet = (cards[0].getNumber() == cards[1].getNumber() && cards[1].getNumber() == cards[2].getNumber())
-                || (cards[0].getNumber() != cards[1].getNumber() && cards[1].getNumber() != cards[2].getNumber()
-                        && cards[0].getNumber() != cards[2].getNumber());
-        boolean isColorSet = (cards[0].getColor() == cards[1].getColor() && cards[1].getColor() == cards[2].getColor())
-                || (cards[0].getColor() != cards[1].getColor() && cards[1].getColor() != cards[2].getColor()
-                        && cards[0].getColor() != cards[2].getColor());
-        boolean isShadingSet = (cards[0].getShading() == cards[1].getShading()
-                && cards[1].getShading() == cards[2].getShading())
-                || (cards[0].getShading() != cards[1].getShading() && cards[1].getShading() != cards[2].getShading()
-                        && cards[0].getShading() != cards[2].getShading());
-        boolean isShapeSet = (cards[0].getShape() == cards[1].getShape() && cards[1].getShape() == cards[2].getShape())
-                || (cards[0].getShape() != cards[1].getShape() && cards[1].getShape() != cards[2].getShape()
-                        && cards[0].getShape() != cards[2].getShape());
-        return isValueSet && isColorSet && isShadingSet && isShapeSet;
-    }
-
-
-    public void removeCards(int[] cardIndices) {
-        Arrays.sort(cardIndices);
-        for (int i = 2; i >= 0; i--) {
-            cards.remove(cardIndices[i]);
-        }
-        if (cards.size() < 12) {
-            for (String shape : shapes)
-            	for (String color : colors)
-            		for (int number : numbers)
-            			for (String shading : shadings) {
-            				Card newCard = new Card(shape, color, number, shading);
-            				cards.add(newCard);
-                            if (!cards.contains(newCard)) {
-                                cards.add(newCard);
-                            }
-                        }
-            Collections.shuffle(cards);
-            cards = cards.subList(0, 12);
-        }
+    
+    /**
+     * Takes a set of cards, and validates it's set status. 
+     * @param cards
+     * @return
+     */
+    public boolean isSet(Card[] cards) {
+    	if(cards.length < SET_SIZE) return false;
+    	
+    	//Since all the cards should have the same match_id, we can just
+    	//set the id to whatever the first pair is
+    	int match_id = -1; 
+    	//Order of comparison: 0:1, 0:2, 1:2. Written like this for flexible set sizes
+    	for(int i = 0; i < SET_SIZE; i++) { 
+    		for(int j = i + 1; j < SET_SIZE; j++) {
+    			if(match_id == -1) cards[i].matchStatus(cards[j]);
+    			if(match_id != cards[i].matchStatus(cards[j])) return false;
+    		}
+    	}
+    	return true;
     }
 
     public List<Card> getCards() {

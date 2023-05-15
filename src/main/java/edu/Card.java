@@ -1,5 +1,7 @@
 package edu;
 
+import java.util.Random;
+
 public class Card {
 	//All possible attributes of a card result in 3^4 different cards
 	//Enums are implemented to make it easier to VALIDATE cards
@@ -52,16 +54,57 @@ public class Card {
         return color;
     }
 
-    public QUANTITY getNumber() {
+    public QUANTITY getQuantity() {
         return qty;
     }
 
     public SHADING getShading() {
         return shading;
     }
-
+    public static Card getRandomCard() {
+    	//Generate random attributes
+    	RandomEnumGenerator<QUANTITY> reg_qty = new RandomEnumGenerator<QUANTITY>(QUANTITY.class);
+    	QUANTITY qty = (QUANTITY) reg_qty.randomEnum();
+    	RandomEnumGenerator<COLOR> reg_color = new RandomEnumGenerator<COLOR>(COLOR.class);
+    	COLOR color = (COLOR) reg_color.randomEnum();
+    	RandomEnumGenerator<SHADING> reg_shading = new RandomEnumGenerator<SHADING>(SHADING.class);
+    	SHADING shading = (SHADING) reg_shading.randomEnum();
+    	RandomEnumGenerator<SHAPE> reg_shape = new RandomEnumGenerator<SHAPE>(SHAPE.class);
+    	SHAPE shape = (SHAPE) reg_shape.randomEnum();
+    	return new Card(qty, color, shading, shape);
+    }
+    /**
+     * Compares two cards and returns the binary match status as an integer. <br>
+     * Remember, the order is QTY, COLOR, SHADING, SHAPE. Always.
+     * Example: <br>
+     * Qty matches, Color does not match, Shading matches, shape does not match <br>
+     * 1010 = 10
+     * @param card
+     * @return
+     */
+    public int matchStatus(Card card) {
+    	int status = 0;
+    	status += 8 * ((qty == card.getQuantity()) ? 1 : 0);
+    	status += 4 * ((color == card.getColor()) ? 1 : 0);
+    	status += 2 * ((shading == card.getShading()) ? 1 : 0);
+    	status += 1 * ((shape == card.getShape()) ? 1 : 0);
+    	return status;
+    }
     @Override
     public String toString() {
     	return String.format("%d %s %s %s(s)", qty.label, color.label, shading.label, shape.label);
+    }
+}
+//Utility class to generate a random card
+class RandomEnumGenerator<T extends Enum<T>> {
+    private static final Random PRNG = new Random();
+    private final T[] values;
+
+    public RandomEnumGenerator(Class<T> e) {
+        values = e.getEnumConstants();
+    }
+
+    public T randomEnum() {
+        return values[PRNG.nextInt(values.length)];
     }
 }

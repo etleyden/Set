@@ -25,6 +25,7 @@ public class Card_Test {
 		//This test generates a random card, and as long as there is no error, we should be fine (probably)
 		System.out.print("Generating a random card: ");
 		try {
+			@SuppressWarnings("unused") //We are just testing to see if this will throw an exception
 			Card random_card = Card.getRandomCard();
 			TestUtility.OK();
 		} catch (Exception e) {
@@ -46,6 +47,8 @@ public class Card_Test {
 		} else {
 			TestUtility.FAILED();
 		}
+		
+		
 	}
 	
 	

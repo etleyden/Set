@@ -63,6 +63,30 @@ public class Board_Test {
 			TestUtility.FAILED();
 		}
 		
-		//TODO: Test set validation
+
+		System.out.print("Checking a valid set: ");
+		Card[] valid_set1 = {
+				new Card(QUANTITY.ONE, COLOR.GREEN, SHADING.STRIPED, SHAPE.OVAL),
+				new Card(QUANTITY.TWO, COLOR.GREEN, SHADING.SOLID, SHAPE.SQUIGGLE),
+				new Card(QUANTITY.THREE, COLOR.GREEN, SHADING.OPEN, SHAPE.DIAMOND)
+				
+		};
+		if(Board.isSet(valid_set1)) {
+			TestUtility.OK();
+		} else {
+			TestUtility.FAILED();
+		}
+		
+		System.out.print("Checking an invalid set: ");
+		Card[] invalid_set1 = {
+				new Card(QUANTITY.ONE, COLOR.RED, SHADING.OPEN, SHAPE.SQUIGGLE),
+				new Card(QUANTITY.THREE, COLOR.GREEN, SHADING.OPEN, SHAPE.DIAMOND),
+				new Card(QUANTITY.ONE, COLOR.GREEN, SHADING.SOLID, SHAPE.DIAMOND)
+		};
+		if(Board.isSet(invalid_set1)) {
+			TestUtility.FAILED();
+		} else {
+			TestUtility.OK();
+		}
 	}
 }

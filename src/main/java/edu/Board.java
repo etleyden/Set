@@ -1,8 +1,6 @@
 package edu;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -49,20 +47,16 @@ public class Board {
      * @param cards
      * @return
      */
-    public boolean isSet(Card[] cards) {
+    public static boolean isSet(Card[] cards) {
+    	//This method only works when SET_SIZE == 3
     	if(cards.length < SET_SIZE) return false;
     	
     	//Since all the cards should have the same match_id, we can just
     	//set the id to whatever the first pair is
     	int match_id = -1; 
-    	//Order of comparison: 0:1, 0:2, 1:2. Written like this for flexible set sizes
-    	for(int i = 0; i < SET_SIZE; i++) { 
-    		for(int j = i + 1; j < SET_SIZE; j++) {
-    			if(match_id == -1) cards[i].matchStatus(cards[j]);
-    			if(match_id != cards[i].matchStatus(cards[j])) return false;
-    		}
-    	}
-    	return true;
+    	//Order of comparison: 0:1, 0:2, 1:2. Inflexible Set Size
+    	return (cards[0].matchStatus(cards[1]) == cards[0].matchStatus(cards[2])
+    				&& cards[0].matchStatus(cards[2]) == cards[1].matchStatus(cards[2]));
     }
 
     public Card getCard(int i) {

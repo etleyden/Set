@@ -9,6 +9,7 @@ public class Main {
     public static void main(String[] args) {
     	// Creates new server
         Server server = new Server();
+        
         // Create thread to handle multiple client requests
         Thread serverThread = new Thread(() -> server.main(null));
         serverThread.start(); // <-- Could this be moved into the try block? --Ethan
@@ -17,12 +18,14 @@ public class Main {
         } catch (InterruptedException e) {
             System.out.println("Error occurred: " + e.getMessage());
         }
+        
         // Creates and construct two new players
         List<Player> players = new ArrayList<>();
         Player player1 = createPlayer("Player1", server);
         players.add(player1);
         Player player2 = createPlayer("Player2", server);
         players.add(player2);
+        
         // Adds players to server list of players
         for (Player player : players) {
             server.addPlayer(player);
@@ -30,6 +33,7 @@ public class Main {
             Thread playerThread = new Thread(player::start);
             playerThread.start();
         }
+        
     }
 
     private static Player createPlayer(String name, Server server) {

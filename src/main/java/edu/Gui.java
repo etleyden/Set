@@ -1,6 +1,9 @@
 package edu;
 
 import javax.swing.*;
+
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -13,7 +16,7 @@ public class Gui extends JFrame {
     private JButton joinGameButton;
     private JButton startGameButton;
     private Client client;
-    private JList<Game> gameList;
+    private JList<Game> gameList; //List of ongoing games
     private JList<Player> playerList;
     private DefaultListModel<Player> playerListModel;
     private DefaultListModel<Game> gameListModel;
@@ -22,26 +25,98 @@ public class Gui extends JFrame {
     // Components for two column window display games + players
     private JLabel label = new JLabel();
     private JPanel panel = new JPanel();
+    //Will contain Create/Join/Start Buttons
+    private JPanel controlPanel = new JPanel(new GridLayout(0, 1, 0, 20));
     private JSplitPane splitPane = new JSplitPane();
 
     public Gui(Player currentPlayer) {
     	// Current player interacting with GUI
     	this.current = currentPlayer;
+    	
+    	//Window Settings
     	System.out.println("Constructing GUI for " + current.getName());
         setTitle("SET Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
         setLocationRelativeTo(null);
-        // GUI Buttons
+        
+        //Build GUI
+        JPanel mainPanel = new JPanel();
+        
+        //Create/Join/Start Buttons
         createGameButton = new JButton("Create Game");
         joinGameButton = new JButton("Join Game");
         startGameButton = new JButton("Start Game");
-        // GUI list of games and players
+        controlPanel.add(createGameButton);
+        controlPanel.add(joinGameButton);
+        controlPanel.add(startGameButton);
+        mainPanel.add(controlPanel);
+        
+        // Set up GUI for list of ongoing games
         gameListModel = new DefaultListModel<>();
         gameList = new JList<>(gameListModel);
         gameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // GUI for list of players participating in a selected game
         playerListModel = new DefaultListModel<>();
         playerList = new JList<>(playerListModel);
+        
+        // Displays games and players sublist
+        splitPane.setLeftComponent(new JScrollPane(gameList));
+        splitPane.setRightComponent(panel);
+        gameList.setPreferredSize(new Dimension(400, 200));
+        panel.setPreferredSize(new Dimension(300, 200));
+        
+        panel.add(label);
+        
+        mainPanel.add(splitPane);
+        
+        //Fit window to GUI
+        add(mainPanel);
+        pack();
+        
+        // Client for current GUI
+        client = new Client();
+        
+        // Player interaction with GUI -> message to client -> server perform action
+        createGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                client.createGame();
+            }
+        });
+        
+        //Event Listeners for control buttons
+        joinGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Game selectedGame = gameList.getSelectedValue();
+                if (selectedGame != null) {
+                    if (currentPlayer != null) {
+                        client.joinGame(selectedGame, currentPlayer);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Error joining game");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select a game to join.");
+                }
+            }
+        });
+        
+        
+        startGameButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		Game selectedGame = gameList.getSelectedValue();
+        		if (selectedGame != null) {
+        			if (selectedGame.hasPlayer(currentPlayer)) {
+        				client.startGame(selectedGame, currentPlayer);
+        			}
+        			else {
+        				JOptionPane.showMessageDialog(null, "Please join the game before intiating start.");
+        			}
+        		}
+        	}
+        });
+        
         // JList that display players in selected game
         gameList.getSelectionModel().addListSelectionListener(e -> {
         	// Gets selected game
@@ -61,62 +136,8 @@ public class Gui extends JFrame {
                 label.setText("");
             }
         });
-        // Displays games and players sublist
-        splitPane.setLeftComponent(new JScrollPane(gameList));
-        panel.add(label);
-        splitPane.setRightComponent(panel);
-        // Add elements to main panel for display
-        JPanel mainPanel = new JPanel();
-        mainPanel.add(createGameButton);
-        mainPanel.add(joinGameButton);
-        mainPanel.add(startGameButton);
-        mainPanel.add(splitPane);
-        add(mainPanel);
-        // Client for current GUI
-        client = new Client();
-        
-        // Player interaction with GUI -> message to client -> server perform action
-        createGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                client.createGame();
-            }
-        });
-        
-        joinGameButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Game selectedGame = gameList.getSelectedValue();
-                if (selectedGame != null) {
-                    if (currentPlayer != null) {
-                        client.joinGame(selectedGame, currentPlayer);
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Error joining game");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(null, "Please select a game to join.");
-                }
-            }
-        });
-        
-        startGameButton.addActionListener(new ActionListener() {
-        	public void actionPerformed(ActionEvent e) {
-        		Game selectedGame = gameList.getSelectedValue();
-        		if (selectedGame != null) {
-        			if (selectedGame.hasPlayer(currentPlayer)) {
-        				client.startGame(selectedGame, currentPlayer);
-        			}
-        			else {
-        				JOptionPane.showMessageDialog(null, "Please join the game before intiating start.");
-        			}
-        		}
-        	}
-        });
         guiInstances.add(this);
         setVisible(true);
-    }
-
-    public static void main(String[] args) {
     }
     // Updates players' GUI with new Board when game is started
     public void updateBoard(Game game, Board board) {

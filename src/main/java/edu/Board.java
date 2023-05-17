@@ -1,11 +1,12 @@
 package edu;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Board {
-	//A list of the cards *dealt*.
+public class Board implements Serializable {
+	  //A list of the cards *dealt*.
     private List<Card> cards;
     public static final int NUM_CARDS = 12;
     public static final int SET_SIZE = 3;

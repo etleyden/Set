@@ -1,5 +1,7 @@
 package edu;
-
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,16 +19,27 @@ public class Main {
         }
         // Creates and construct two new players
         List<Player> players = new ArrayList<>();
-        Player player1 = new Player("Player1");
+        Player player1 = createPlayer("Player1", server);
         players.add(player1);
-        Player player2 = new Player("Player2");
+        Player player2 = createPlayer("Player2", server);
         players.add(player2);
         // Adds players to server list of players
         for (Player player : players) {
             server.addPlayer(player);
-            // Allow multiple players to connect to server simultaneously 
-            Thread playerThread = new Thread(() -> player.main(player.getName()));
+            // Allow multiple players to connect to server simultaneously
+            Thread playerThread = new Thread(player::start);
             playerThread.start();
+        }
+    }
+
+    private static Player createPlayer(String name, Server server) {
+        try {
+            Socket socket = new Socket("localhost", 8080);
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            return new Player(name, outputStream);
+        } catch (IOException e) {
+            System.out.println("Error occurred: " + e.getMessage());
+            return null;
         }
     }
 }

@@ -3,6 +3,8 @@ import java.util.Random;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,8 +39,8 @@ public class Server {
     void addPlayer(Player player) {
         players.add(player);
     }
-    
-    // Creates new game and broadcast 
+ 
+    /* Creates a new game then update GUI */
     private static void createGame() {
     	// Generates random ID for game
     	int gameId = new Random().nextInt(1000000);
@@ -46,7 +48,7 @@ public class Server {
         games.add(game);
         broadcastGames();
     }
-    // Add player to selected game
+
     private static void joinGame(int gameId, String playerName) {
     	Player requestedPlayer = findPlayer(playerName);
     	Game requestedGame = findGame(gameId);
@@ -54,21 +56,30 @@ public class Server {
     	broadcastPlayers();
     	broadcastGames();
     }
+    
     private static void startGame(int gameId, String playerName) {
         Game requestedGame = findGame(gameId);
         Board board = requestedGame.getBoard();
+        
         for (Player player : requestedGame.getPlayers()) {
-            player.getGui().updateBoard(requestedGame, board);
+            ObjectOutputStream playerOutputStream = player.getOutputStream();
+            try {
+                playerOutputStream.writeObject(board);
+                playerOutputStream.flush();
+            } catch (IOException e) {
+                System.out.println("Error occurred while sending the Board to the client: " + e.getMessage());
+            }
         }
     }
-    // Updates GUI of all players with new list of players
+    
+    /*  Updates GUI of all players on server 
+     *  whenever a new player joins or a new game is created */
     private static void broadcastPlayers() {
     	for (Player player : players) {
     		player.getGui().updatePlayers(players);
     	}
     }
     
-    // Updates GUI of all players on server with updated list of games
     private static void broadcastGames() {
         for (Player player : players) {
             player.getGui().update(games);
@@ -100,17 +111,18 @@ public class Server {
     public List<Game> getGames() {
         return games;
     }
-
+    
+    /* ClientHandler can now send and receive objects from Client */
     private static class ClientHandler extends Thread {
         private Socket clientSocket;
-        private BufferedReader in;
-        private PrintWriter out;
+        private ObjectInputStream in;
+        private ObjectOutputStream out;
         
         public ClientHandler(Socket clientSocket) {
             this.clientSocket = clientSocket;
             try {
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+            	out = new ObjectOutputStream(clientSocket.getOutputStream());
+                in = new ObjectInputStream(clientSocket.getInputStream());
             } catch (IOException e) {
                 System.out.println("Error occurred: " + e.getMessage());
             }
@@ -119,33 +131,37 @@ public class Server {
         @Override
         public void run() {
             try {
-                String message = in.readLine();
+                Object message = in.readObject();
                 while (message != null) {
-                    if (message.equals("CREATE_GAME")) {
-                        System.out.println("Received CREATE_GAME message from client");
-                        createGame();
-                    }
-                    else if (message.startsWith("JOIN_GAME")) {
-                    	System.out.println("Received JOIN_GAME message from client");
-                    	// Obtains gameID and name of player that requested to join game
-                    	String[] parts = message.split(":", 3);
-                    	int gameId = Integer.parseInt(parts[1]);
-                    	String playerName = parts[2];
-                    	joinGame(gameId, playerName);
-                    }
-                    else if (message.startsWith("START_GAME")) {
-                    	System.out.println("Received START_GAME message from client");
-                    	String[] parts = message.split(":", 3);
-                    	int gameId = Integer.parseInt(parts[1]);
-                    	String playerName = parts[2];
-                    	startGame(gameId, playerName);
+                    if (message instanceof String) {
+                        String command = (String) message;
+                        if (command.equals("CREATE_GAME")) {
+                            System.out.println("Received CREATE_GAME message from client");
+                            createGame();
+                        } else if (command.startsWith("JOIN_GAME")) {
+                            System.out.println("Received JOIN_GAME message from client");
+                            String[] parts = command.split(":", 3);
+                            int gameId = Integer.parseInt(parts[1]);
+                            String playerName = parts[2];
+                            joinGame(gameId, playerName);
+                        } else if (command.startsWith("START_GAME")) {
+                            System.out.println("Received START_GAME message from client");
+                            String[] parts = command.split(":", 3);
+                            int gameId = Integer.parseInt(parts[1]);
+                            String playerName = parts[2];
+                            startGame(gameId, playerName);
+                        } else {
+                            System.out.println("Unknown message: " + command);
+                        }
                     }
                     else {
-                        System.out.println("Unknown message: " + message);
+                        System.out.println("Unknown object received from client");
                     }
-                    message = in.readLine();
+                    message = in.readObject();
                 }
             } catch (IOException e) {
+                System.out.println("Error occurred: " + e.getMessage()); 
+            } catch (ClassNotFoundException e) {
                 System.out.println("Error occurred: " + e.getMessage());
             } finally {
                 try {

@@ -32,22 +32,17 @@ public class Gui extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
         setLocationRelativeTo(null);
-        
         // GUI Buttons
         createGameButton = new JButton("Create Game");
         joinGameButton = new JButton("Join Game");
         startGameButton = new JButton("Start Game");
-        
-        // List of games
+        // GUI list of games and players
         gameListModel = new DefaultListModel<>();
         gameList = new JList<>(gameListModel);
         gameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        // List of players
         playerListModel = new DefaultListModel<>();
         playerList = new JList<>(playerListModel);
-        
-        // Allow display of player names as sublist
+        // JList that display players in selected game
         gameList.getSelectionModel().addListSelectionListener(e -> {
         	// Gets selected game
             Game currentGame = gameList.getSelectedValue();
@@ -66,26 +61,21 @@ public class Gui extends JFrame {
                 label.setText("");
             }
         });
-        // Creates two column window 
+        // Displays games and players sublist
         splitPane.setLeftComponent(new JScrollPane(gameList));
         panel.add(label);
         splitPane.setRightComponent(panel);
-        
         // Add elements to main panel for display
         JPanel mainPanel = new JPanel();
         mainPanel.add(createGameButton);
         mainPanel.add(joinGameButton);
         mainPanel.add(startGameButton);
         mainPanel.add(splitPane);
-        
-        // Global list of players
-        mainPanel.add(new JScrollPane(playerList));
         add(mainPanel);
-        
         // Client for current GUI
         client = new Client();
         
-        // Send message to server to create game
+        // Player interaction with GUI -> message to client -> server perform action
         createGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -93,7 +83,6 @@ public class Gui extends JFrame {
             }
         });
         
-        // Send message to server to join game
         joinGameButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -110,12 +99,11 @@ public class Gui extends JFrame {
             }
         });
         
-        // Send message to start selected game
         startGameButton.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		Game selectedGame = gameList.getSelectedValue();
         		if (selectedGame != null) {
-        			if (selectedGame.hasPlayer(currentPlayer)) { // Checks if player joined selected game
+        			if (selectedGame.hasPlayer(currentPlayer)) {
         				client.startGame(selectedGame, currentPlayer);
         			}
         			else {
@@ -130,6 +118,7 @@ public class Gui extends JFrame {
 
     public static void main(String[] args) {
     }
+    // Updates players' GUI with new Board when game is started
     public void updateBoard(Game game, Board board) {
     	System.out.println("Running Gui.updateBoard");
     	

@@ -1,8 +1,10 @@
 package edu;
 
+import java.io.Serializable;
 import java.util.Random;
+
 //Order of attributes: QTY --> Color --> Shading --> Shape
-public class Card {
+public class Card implements Serializable {
 	//All possible attributes of a card result in 3^4 different cards
 	//Enums are implemented to make it easier to VALIDATE cards
 	public enum SHAPE {
